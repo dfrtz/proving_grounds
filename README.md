@@ -11,6 +11,8 @@ or bugs being fixed. Bugs and features are addressed on best effort basis.
 - [Experiments vs Examples](#experiments-vs-examples)  
 - [Projects](#projects)
   - [Background Web Worker Wrapper](#background-web-worker-wrapper)
+  - [Dash Clientside Components](#dash-clientside-components)
+  - [Python Web Worker](#python-web-worker)
 
 ## Experiments vs Examples
 
@@ -95,6 +97,75 @@ if (typeof window !== "undefined") {
 ```
 
 </details>
+
+
+### Dash Clientside Components
+
+#### Overview
+
+Create Plotly Dash components in Javascript instead of Python. Supports `dash.html` and `dash.dcc`,
+but can be expanded to support any Dash namespace
+- **Language(s)**: JavaScript
+- **Location**: [JS Dash Components](js_dash_components)
+
+#### Requirements
+- Plotly Dash application
+
+#### Examples
+
+<details>
+<summary>Python App w/ Clientside Callback</summary>
+
+**app.py**
+```python
+import dash
+from dash import Input
+from dash import Output
+from dash import html
+
+app = dash.Dash(__name__)
+
+app.layout = html.Div(
+    [
+        html.Button("Press to load JS component", id="button"),
+        html.Div("Hello World From Python!", id="container"),
+    ]
+)
+
+app.clientside_callback(
+    """
+    function press(nClicks) {
+        return Dash.html.Div({children: `Hello World From JS! ${nClicks} Clicks.`});
+    }""",
+    Output("container", "children"),
+    Input("button", "n_clicks"),
+    prevent_initial_call=True,
+)
+
+if __name__ == "__main__":
+    app.run_server(debug=True)
+```
+
+</details>
+
+<details>
+<summary>JS Function w/ Wait For Ready</summary>
+
+**app.py**
+```javascript
+async function onLoad() {
+    // Wait on instantly run JS code to ensure Dash libraries have loaded.
+    await Dash.ready;
+    return Dash.html.Div({children: "Dash JS libraries ready."});
+}
+```
+
+</details>
+
+#### Other Resources
+
+- [Plotly Dash](https://dash.plotly.com/)
+- [Original gist](https://gist.github.com/dfrtz/b7787e8cafc6329fcab627de4f88d03b)
 
 
 ### Python Web Worker
