@@ -71,7 +71,7 @@ export class Runtime extends BackgroundWorkerRuntime {
 
 if (typeof window !== "undefined") {
     window.bgRun = bgRun
-} else if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
+} else if (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) {
     const runtime = new Runtime();
     self.onmessage = async event => self.postMessage(await runtime.run(event.data));
 }
@@ -95,3 +95,61 @@ if (typeof window !== "undefined") {
 ```
 
 </details>
+
+
+### Python Web Worker
+
+#### Overview
+
+Run python code in a background web worker.
+- **Language(s)**: JavaScript, Python
+- **Location**: [Python Web Worker](py_web_worker)
+
+#### Requirements
+- [Background Web Worker Wrapper](#background-web-worker-wrapper) example installed.
+- Browser compatible with Pyodide WASM.
+
+#### Examples
+
+<details>
+<summary>Python Setup and Execution</summary>
+
+**myscript.mjs**
+```javascript
+import * as Python from "./python.mjs";
+
+async function main() {
+    Python.init();
+    const result = await Python.execute(`
+    import sys
+    print('Initialized Python:', sys.version)
+    sys.version
+    `);
+    const msg = document.getElementById("msg");
+    msg.innerHTML = `Initialized Python: ${result.result}`;
+}
+
+await main();
+```
+
+**index.html**:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="/background.mjs" type="module"></script>
+    <script src="/experiments.mjs" type="module"></script>
+</head>
+<body>
+<div id="msg"></div>
+</body>
+</html>
+```
+
+</details>
+
+#### Other Resources
+
+- [Pyodide](https://pyodide.org/)
+- [Original gist](https://gist.github.com/dfrtz/0cd04ab201677f390c09fd952d15df00)
