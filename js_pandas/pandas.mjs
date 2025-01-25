@@ -1,5 +1,5 @@
 /**
- * @file Utilities for running Pandas queries against a Javascript dataset.
+ * @file Utilities for running Pandas queries against a JavaScript dataset.
  *
  * @summary Pandas query utilities.
  *
@@ -58,7 +58,7 @@ window.Pandas = (function (module) {
 })(window.Pandas || {});
 
 /**
- * If using with the DashX interactive table example, add this to a library loaded with the Dash application.
+ * If using with the DashTable interactive table example, add this to a library loaded with the Dash application.
  */
 // window.addEventListener("load", async function () {
 //     await Python.init();

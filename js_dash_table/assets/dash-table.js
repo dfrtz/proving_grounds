@@ -50,7 +50,7 @@ var DashTable = (function (module) {
     };
 
     /**
-     * State for displaying information, and tracking user interactions, with native Javascript and HTML tables.
+     * State for displaying information, and tracking user interactions, with native JavaScript and HTML tables.
      *
      * Similar to a custom React component with the "state" and "props", but leverages native component trees using
      * standard Plotly Dash components.
@@ -434,6 +434,7 @@ var DashTable = (function (module) {
          * Update the React properties and rendered elements using the latest configration state.
          */
         async update() {
+            await Dash.ready;
             const prefix = this.config.id_prefix;
             await this.updateData();
             if (this.pendingConfigChange) {
