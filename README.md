@@ -105,7 +105,7 @@ if (typeof window !== "undefined") {
 
 #### Overview
 
-Create Plotly Dash components in Javascript instead of Python. Supports `dash.html` and `dash.dcc`,
+Create Plotly Dash components in JavaScript instead of Python. Supports `dash.html` and `dash.dcc`,
 but can be expanded to support any Dash namespace.
 - **Language(s)**: JavaScript
 - **Location**: [JS Dash Components](js_dash_components)
@@ -175,10 +175,10 @@ async function onLoad() {
 100% JS alternative to Plotly Dash DataTable, with full control over filtering and formatting.
 
 Uses standard HTML component trees, `MATCH` based callbacks, and `dash_clientside` to perform the same behaviors
-(and more) without any Typescript or custom React components. The tree can be created in Python or Javascript,
+(and more) without any Typescript or custom React components. The tree can be created in Python or JavaScript,
 as long as the required components are added.
 
-Also provides a general example for other custom "State" type classes that can be used to make Javascript
+Also provides a general example for other custom "State" type classes that can be used to make JavaScript
 based components without an NPM setup.
 
 - **Language(s)**: JavaScript
@@ -285,6 +285,44 @@ window.addEventListener("load", function () {
 - [Original gist](https://gist.github.com/dfrtz/5b94dc6df48b80bed87ff257b114e173)
 
 
+### DuckDB Web Query
+
+#### Overview
+
+Use DuckDB to filter JavaScript arrays.
+- **Language(s)**: JavaScript
+- **Location**: [JS DuckDB](js_duckdb)
+
+#### Requirements
+
+- Browser compatible with DuckDB WASM.
+
+#### Examples
+
+<details>
+<summary>DuckDB Query Execution</summary>
+
+```javascript
+import {query} from "./duckdb.mjs";
+
+console.log(
+    await query(
+        'select * from data where percentage > .6',
+        [
+            {"Name": "a", "Percentage": 0.5},
+            {"Name": "b", "Percentage": 0.99},
+        ]
+    )
+);
+```
+</details>
+
+#### Other Resources
+
+- [DuckDB](https://duckdb.org/docs/sql/introduction.html)
+- [Original gist](https://gist.github.com/dfrtz/7a72a36bc4d88535a00e2da0ee0635e7)
+
+
 ### Pandas Web Query
 
 #### Overview
@@ -301,7 +339,7 @@ Use Pandas to filter JavaScript arrays.
 #### Examples
 
 <details>
-<summary>Python Setup and Execution</summary>
+<summary>Pandas Query Execution</summary>
 
 ```javascript
 import {query} from "./pandas.mjs";
