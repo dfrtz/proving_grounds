@@ -1,0 +1,32 @@
+.info-table {
+    border: 1px solid grey;
+    border-collapse: collapse;
+    thead > th > * {
+        margin: 0 4px;
+    }
+    .invalid {
+        color: red;
+    }
+    .column-highlight {
+        background-color: #55BBFF33;
+        border-left: 1px solid #55BBFFFF;
+        border-right: 1px solid #55BBFFFF;
+    }
+    .row-highlight {
+        background-color: #55AA0033;
+        border-top: 1px solid #55AA00FF;
+        border-bottom: 1px solid #55AA00FF;
+    }
+    .sort-icon-container {
+        visibility: hidden;
+    }
+    .is-sortable {
+        cursor: pointer
+    }
+    .is-sorted .sort-icon-container {
+        visibility: visible;
+    }
+    .is-sorted.is-sorted-desc .sort-icon-container {
+        transform: rotate(180deg);
+    }
+}
