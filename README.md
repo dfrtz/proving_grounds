@@ -13,6 +13,7 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [Background Web Worker Wrapper](#background-web-worker-wrapper)
   - [Dash Clientside Components](#dash-clientside-components)
   - [Dash Customizable Table](#dash-customizable-table)
+  - [Pandas Web Query](#pandas-web-query)
   - [Python Web Worker](#python-web-worker)
 
 ## Experiments vs Examples
@@ -284,6 +285,45 @@ window.addEventListener("load", function () {
 - [Original gist](https://gist.github.com/dfrtz/5b94dc6df48b80bed87ff257b114e173)
 
 
+### Pandas Web Query
+
+#### Overview
+
+Use Pandas to filter JavaScript arrays.
+- **Language(s)**: JavaScript, Python
+- **Location**: [JS Pandas](js_pandas)
+
+#### Requirements
+
+- [Background Web Worker Wrapper](#background-web-worker-wrapper) example installed.
+- [Python Web Worker](#python-web-worker) example installed.
+
+#### Examples
+
+<details>
+<summary>Python Setup and Execution</summary>
+
+```javascript
+import {query} from "./pandas.mjs";
+
+console.log(
+    await query(
+        'Name == "a"',
+        [
+            {"Name": "a", "Percentage": 0.5},
+            {"Name": "b", "Percentage": 0.99},
+        ]
+    )
+);
+```
+</details>
+
+#### Other Resources
+
+- [Pandas](https://pandas.pydata.org/docs/user_guide/index.html)
+- [Original gist](https://gist.github.com/dfrtz/4f90f77dd8046c299f62b59a6638517e)
+
+
 ### Python Web Worker
 
 #### Overview
@@ -293,6 +333,7 @@ Run python code in a background web worker.
 - **Location**: [Python Web Worker](py_web_worker)
 
 #### Requirements
+
 - [Background Web Worker Wrapper](#background-web-worker-wrapper) example installed.
 - Browser compatible with Pyodide WASM.
 

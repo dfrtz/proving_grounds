@@ -106,15 +106,18 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
      * Initialize the Python runtime in preparation for executing Python code.
      *
      * @param {string} pyodideURL Path to the pyodide module.
+     * @param {boolean} logErrors Whether to also log Python errors. Always returned in responses.
      */
     constructor(
         {
-            pyodideURL = "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.mjs"
+            pyodideURL = "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.mjs",
+            logErrors = false,
         } = {}
     ) {
         super();
         this.pyodide = null;
         this.pyodideURL = pyodideURL;
+        this.logErrors = logErrors;
     }
 
     /**
@@ -142,8 +145,8 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
     async execute(
         {
             code,
-            globals,
-            locals,
+            globals = {},
+            locals = {},
             load_micropip = false
         } = {}
     ) {
@@ -210,7 +213,7 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
      * @returns {Promise<void>} A future that completes when all the installation requests have completed.
      */
     async installPackages({packages = [], keep_going = true} = {}) {
-        if (packages.length) {
+        if (!packages.length) {
             return;
         }
         await this.execute({
@@ -221,6 +224,12 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
             },
             load_micropip: true,
         });
+    }
+
+    onError(id, method, args, error) {
+        if (this.logErrors) {
+            console.error("Failed to run Python request", id, method, error);
+        }
     }
 }
 
