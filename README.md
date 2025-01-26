@@ -14,6 +14,7 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [Dash Clientside Components](#dash-clientside-components)
   - [Dash Customizable Table](#dash-customizable-table)
   - [Pandas Web Query](#pandas-web-query)
+  - [Pandas Web Snapshots](#python-web-snapshots)
   - [Python Web Worker](#python-web-worker)
 
 ## Experiments vs Examples
@@ -360,6 +361,64 @@ console.log(
 
 - [Pandas](https://pandas.pydata.org/docs/user_guide/index.html)
 - [Original gist](https://gist.github.com/dfrtz/4f90f77dd8046c299f62b59a6638517e)
+
+
+### Python Web Snapshots
+
+#### Overview
+
+Create Python web snapshots to optimize loading, reuse, and consistency across user environments.
+- **Language(s)**: JavaScript, Python
+- **Location**: [Python Web Snapshot](py_web_snapshot)
+
+#### Requirements
+
+- [Background Web Worker Wrapper](#background-web-worker-wrapper) example installed.
+- [Python Web Worker](#python-web-worker) example installed.
+
+#### Examples
+
+<details>
+<summary>Use the example wizard</summary>
+
+1. Serve the page locally: `python -m http.server`
+2. Visit and follow the steps from: http://127.0.0.1:8000/wizard.html
+</details>
+
+<details>
+<summary>Create and download a snapshot manually</summary>
+
+```javascript
+import {download, makeSnapshotBackground} from "./python-snapshot.mjs";
+
+const {result, error} = await makeSnapshotBackground({
+    packages: ["pandas"],
+    snapPrepScript: "import pandas",
+    validationScript: "import pandas;print(pandas.__version__)",
+});
+download(result, "snapshot.bin.gz");
+```
+</details>
+
+<details>
+<summary>Load a snapshot</summary>
+
+```javascript
+import * as Python from "./python.mjs";
+import {decompress} from "./python-snapshot.mjs";
+
+const response = await fetch("./snapshot.bin.gz");
+const arrayBuffer = await response.arrayBuffer();
+const uint8Array = new Uint8Array(arrayBuffer);
+const snapshot = decompress(uint8Array);
+const runtime = new Python.PythonRuntime();
+await runtime.init({_loadSnapshot: snapshot});
+```
+</details>
+
+#### Other Resources
+
+- [Pyodide](https://pyodide.org/)
 
 
 ### Python Web Worker
