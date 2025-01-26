@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="./background.mjs" type="module"></script>
+    <script src="./python.mjs" type="module"></script>
+    <script src="./python-snapshot.mjs" type="module"></script>
+    <script type="module">
+        import {BackgroundWorker} from "./background.mjs";
+        import {decompress, download, makeSnapshotBackground} from "./python-snapshot.mjs";
+
+        let snapshot;
+
+        async function generateSnapshot() {
+            const {result, error} = await makeSnapshotBackground({
+                packages: document.getElementById("packages").value.trim().split(/\r?\n/g).map(value => value.trim()).filter(value => value),
+                snapPrepScript: document.getElementById("snapPrepScript").value.trim(),
+                validationScript: document.getElementById("validationScript").value.trim(),
+                withStatusUpdate: true,
+            });
+            if (error || error === "") {
+                console.error(`Failed to generate snapshot ${error}`,)
+            } else {
+                download(result, document.getElementById("file").value.trim());
+            }
+        }
+
+        async function readFile(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const data = new Uint8Array(event.target.result);
+                snapshot = await decompress(data);
+                console.log(`Loaded Python snapshot compressed ${data.length} uncompressed ${snapshot.length}`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function testSnapshotForeground() {
+            console.log("Starting python");
+            const timeit = () => (performance.now() - startTime) / 1000;
+            const startTime = performance.now();
+            const runtime = new Python.PythonRuntime();
+            await runtime.init({_loadSnapshot: snapshot});
+            console.log(`Python ready in ${timeit()}`);
+            await runtime.execute({code: document.getElementById("validationScript").value.trim()});
+            console.log(`Python executed in ${timeit()}`);
+        }
+
+        async function testSnapshotBackground() {
+            const worker = new BackgroundWorker("./python.mjs");
+            await worker.run("init", {_loadSnapshot: snapshot});
+            await worker.run("execute", {code: document.getElementById("validationScript").value.trim()});
+        }
+
+        window.generateSnapshot = generateSnapshot;
+        window.testSnapshotForeground = testSnapshotForeground;
+        window.testSnapshotBackground = testSnapshotBackground;
+        document.getElementById("snapshotInput").addEventListener("change", readFile, false);
+    </script>
+</head>
+<body>
+<h2>Create Snapshot</h2>
+<p>
+    <label for="packages">Step 1: Install Packages</label><br/>
+    <textarea id="packages" cols="48" rows="2">duckdb
+pandas</textarea>
+</p>
+<p>
+    <label for="snapPrepScript">Step 2: Prep Environment</label><br/>
+    <textarea id="snapPrepScript" cols="48" rows="2">import pandas
+import duckdb</textarea>
+</p>
+<p>
+    <label for="validationScript">Step 3: Validate Snapshot Environment</label><br/>
+    <textarea id="validationScript" cols="48" rows="4">import duckdb
+import pandas
+print(duckdb.__version__)
+print(pandas.__version__)</textarea>
+</p>
+<p>
+    <label for="file">Step 4: Save To File</label><br/>
+    <textarea id="file" cols="48" rows="1">python-web.bin.gz</textarea>
+</p>
+<button onclick="generateSnapshot()">Generate & Save Snapshot</button>
+<p>Open console to view progress.</p>
+
+<h2>Test Snapshot</h2>
+<p>
+    <label for="snapshotInput">Step 1: Select Snapshot</label><br/>
+    <input type="file" id="snapshotInput"/>
+</p>
+<p>
+    <label>Step 2: Run Validation</label><br/>
+    <button onclick="testSnapshotForeground()">Run In Foreground</button>
+    <button onclick="testSnapshotBackground()">Run In Background</button>
+</p>
+<p>Open console to view result.</p>
+</body>
+</html>

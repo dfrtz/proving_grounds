@@ -123,14 +123,16 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
     /**
      * Load the main Python wasm module and initialize it.
      *
+     * @param {Object.<string, any>} loadPyodideArgs Additional arguments to pass to loadPyodide.
+     *
      * @returns {Promise<void>} A future that completes when Python is ready within the current context.
      */
-    async init() {
+    async init({...loadPyodideArgs} = {}) {
         if (this.pyodide) {
             return;
         }
         const module = await import(this.pyodideURL);
-        this.pyodide = await module.loadPyodide();
+        this.pyodide = await module.loadPyodide(loadPyodideArgs);
     }
 
     /**
@@ -167,12 +169,30 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
     }
 
     /**
+     * Extract a bundle/archive into the Python environment.
+     *
+     * @param {Uint8Array} data Data representing an archive to unpack.
+     * @param {string} format The format of the archive. Should be one of the formats recognized by shutil.unpack_archive().
+     * @param {string} extractDir The directory to unpack the archive into. Defaults to the working directory.
+     * @returns {Promise<void>} A future that completes when the extraction request has completed.
+     */
+    async extract({data, format = "gztar", extractDir} = {}) {
+        if (!data) {
+            return;
+        }
+        if (!this.pyodide) {
+            await this.init();
+        }
+        await this.pyodide.unpackArchive(data.buffer, format, {extractDir: extractDir});
+    }
+
+    /**
      * Extract a remote bundle/archive into the Python environment.
      *
-     * @param {string} path Path to a bundle file to extract into the worker environment.
-     * @param {string} format The format of the bundle/archive. Should be one of the formats recognized by shutil.unpack_archive().
+     * @param {string} path Path to an archive file to extract into the worker environment.
+     * @param {string} format The format of the archive. Should be one of the formats recognized by shutil.unpack_archive().
      * @param {string} extractDir The directory to unpack the archive into. Defaults to the working directory.
-     * @returns {Promise<void>} A future that completes when the installation requests have completed.
+     * @returns {Promise<void>} A future that completes when the extraction request has completed.
      */
     async extractRemote({path, format = "gztar", extractDir} = {}) {
         if (!path) {
@@ -183,7 +203,7 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
         }
         const response = await fetch(path);
         const buffer = await response.arrayBuffer();
-        await this.pyodide.unpackArchive(buffer, format, {extractDir: extractDir});
+        await this.extract({data: new Uint8Array(buffer), format: format, extractDir: extractDir});
     }
 
     /**
@@ -230,6 +250,19 @@ export class PythonRuntime extends BackgroundWorkerRuntime {
         if (this.logErrors) {
             console.error("Failed to run Python request", id, method, error);
         }
+    }
+
+    /**
+     * Read a file from the Python environment.
+     *
+     * @param {string} path Location of the file within the Python environment.
+     * @returns {Promise<Uint8Array|null>} The raw bytes representing the file, or null if not found.
+     */
+    async readFile({path}) {
+        if (!path) {
+            return null;
+        }
+        return new Uint8Array((await this.pyodide.FS.readFile(path)).buffer);
     }
 }
 

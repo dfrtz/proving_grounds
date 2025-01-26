@@ -43,7 +43,7 @@ export class BackgroundWorker {
      * @param {Object} args Arguments to send to the method.
      * @returns {Promise<{result, error}>} A future that completes with the result, and any error, from the method.
      */
-    run(method, args) {
+    run(method, args = {}) {
         let resolve;
         const promise = new Promise(res => resolve = res);
         const requestID = this.generateRequestID();
