@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Plotly Customer Formatter Example</title>
+    <script src="./plotly-3.0.0.min.js"></script>
+</head>
+<body>
+<div id="original"></div>
+<div id="custom"></div>
+<script>
+    function formatBinaryBytes(bytes, {precision = 2} = {}) {
+        if (bytes === 0) {
+            return "0 B";
+        }
+        const wholeUnit = 1024;
+        const unitIndex = Math.floor(Math.log(bytes) / Math.log(wholeUnit));
+        const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+        return parseFloat((bytes / Math.pow(wholeUnit, unitIndex)).toFixed(precision)) + " " + units[unitIndex];
+    }
+
+    window.Plotly.numFormatOverride = function (v, ax, fmtoverride, hover) {
+        const exponentFormat = fmtoverride || ax.exponentformat || "B";
+        if (exponentFormat === "IEC") {
+            return formatBinaryBytes(v);
+        }
+        return null;
+    };
+
+    const DATA = [
+        {
+            x: ["1 GB", "1 GiB"],
+            y: [1000 ** 3, 1024 ** 3],
+            type: "bar"
+        }
+    ];
+    Plotly.newPlot(
+        "original",
+        DATA,
+        {
+            "title": {
+                "text": "SI Formatting (Native)"
+            },
+            "yaxis": {
+                "title": {
+                    "text": "Bytes (Base 10)",
+                },
+                "exponentformat": "SI",
+            },
+        }
+    );
+    Plotly.newPlot(
+        "custom",
+        DATA,
+        {
+            "title": {
+                "text": "IEC Formatting (Custom)"
+            },
+            "yaxis": {
+                "title": {
+                    "text": "Bytes (Base 2)",
+                },
+                "exponentformat": "IEC",
+            },
+        }
+    );
+</script>
+</body>
+</html>

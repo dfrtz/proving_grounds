@@ -14,6 +14,7 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [Dash Clientside Components](#dash-clientside-components)
   - [Dash Customizable Table](#dash-customizable-table)
   - [Pandas Web Query](#pandas-web-query)
+  - [Plolty JS Custom Formatters](#plotly-js-custom-formatters)
   - [Pandas Web Snapshots](#python-web-snapshots)
   - [Python Web Worker](#python-web-worker)
 
@@ -361,6 +362,61 @@ console.log(
 
 - [Pandas](https://pandas.pydata.org/docs/user_guide/index.html)
 - [Original gist](https://gist.github.com/dfrtz/4f90f77dd8046c299f62b59a6638517e)
+
+
+### Plotly JS Custom Formatters
+
+#### Overview
+
+Add the ability to use custom number formatters to Plotly graphs.
+- **Language(s)**: JavaScript, Bash (helper script to patch Plotly JS)
+- **Location**: [JS Plotly Formatter](js_plotly_formatter)
+
+#### Requirements
+
+- Plotly JS compatible browser.
+- Docker (to run the patch script, steps can also be followed manually).
+  - Add new option(s) to exponent format options.
+  - Add override into top of `numFormat`.
+- Set `Plotly.numFormatOverride` with custom formatter.
+
+#### Examples
+
+<details>
+<summary>Add binary bytes (IEC) formatter</summary>
+
+1. Run the `build_plotly.sh` script to generate a patched `plotly.min.js` (or follow steps in script to patch manually).
+```bash
+./build_plotly.sh --plotly 3.0.0
+```
+
+2. Add format override to any script loaded with window.
+```javascript
+function formatBinaryBytes(bytes, {precision = 2} = {}) {
+  if (bytes === 0) {
+    return "0 B";
+  }
+  const wholeUnit = 1024;
+  const unitIndex = Math.floor(Math.log(bytes) / Math.log(wholeUnit));
+  const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+  return parseFloat((bytes / Math.pow(wholeUnit, unitIndex)).toFixed(precision)) + " " + units[unitIndex];
+}
+
+window.Plotly.numFormatOverride = function (v, ax, fmtoverride, hover) {
+  const exponentFormat = fmtoverride || ax.exponentformat || "B";
+  if (exponentFormat === "IEC") {
+    return formatBinaryBytes(v);
+  }
+  return null;
+};
+```
+
+> Full example with IEC formatter can be found at `example.html`. Must generate patched `plotly.js` file to use.
+</details>
+
+#### Other Resources
+
+- [Plotly JavaScript](https://plotly.com/javascript/)
 
 
 ### Python Web Snapshots
