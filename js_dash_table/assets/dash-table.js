@@ -124,13 +124,14 @@ var DashTable = (function (module) {
             const tableIndex = dash_clientside.callback_context.inputs_list[0].id.index;
             this.root = document.getElementById(`{"index":"${tableIndex}","type":"${prefix}-root"}`);
             this.table = this.root.getElementsByClassName(`${prefix}-table`)[0];
-            this.table.state = this; // Attach this object to the HTML element to tie their lifecycles together.
             this.tableIndex = tableIndex;
             this.filter = this.root.getElementsByClassName(`${prefix}-filter`)[0];
             this.prevBtn = this.root.getElementsByClassName(`${prefix}-prev-btn`)[0];
             this.nextBtn = this.root.getElementsByClassName(`${prefix}-next-btn`)[0];
-            this.currentCount = this.root.getElementsByClassName(`${prefix}-current-count`)[0]
-            this.totalCount = this.root.getElementsByClassName(`${prefix}-total-count`)[0]
+            this.currentCount = this.root.getElementsByClassName(`${prefix}-current-count`)[0];
+            this.totalCount = this.root.getElementsByClassName(`${prefix}-total-count`)[0];
+            this.heading = this.root.getElementsByClassName(`${prefix}-heading`)[0];
+            this.body = this.root.getElementsByClassName(`${prefix}-body`)[0];
             this.lastVirtualization = [];
             this.pendingConfigChange = true;
             this.pendingHeaderChange = true;
@@ -138,9 +139,17 @@ var DashTable = (function (module) {
             // Update the initial layout for the table.
             this.update();
 
+            // Attach this object to the HTML element to tie their lifecycles together.
+            // Clear references to previous states if the component is being reused.
+            if (this.table.state) {
+                this.table.state.table = null;
+            }
+            this.table.state = this;
+
             // Add callbacks for the interactive elements to update the contents.
+            // Direct attach, instead of using "addEventListener", to ensure old listeners are removed on component reuse.
             this.root.onclick = (event) => this.onClick(event);
-            this.filter.addEventListener("input", (event) => this.onFilterChange(event));
+            this.filter.oninput = (event) => this.onFilterChange(event);
         }
 
         /**
@@ -220,7 +229,7 @@ var DashTable = (function (module) {
         /**
          * Create the column headers summarizing the table contents
          *
-         * @returns {object[]} Components to place into the header row of the table.
+         * @returns {HTMLElement[]} Components to place into the header row of the table.
          */
         getColumns() {
             const prefix = this.config.id_prefix;
@@ -228,7 +237,7 @@ var DashTable = (function (module) {
             const columnSelectable = Boolean(this.config.column_selectable);
             const sortBy = this.config.sort_by;
             const columnHeaders = [
-                Dash.html.Th({className: rowSelectable ? null : "hidden"})
+                Dash.htmlElements.Th({className: rowSelectable ? null : "hidden"})
             ];
             for (const [colIndex, col] of this.config.columns.virtual.entries()) {
                 const index = `${this.tableIndex}-${colIndex}`;
@@ -240,32 +249,36 @@ var DashTable = (function (module) {
                         sortClasses += " is-sorted-desc";
                     }
                 }
+                let sortIcon = this.config.column_sort_icon;
+                if (sortIcon instanceof HTMLElement) {
+                    sortIcon = sortIcon.cloneNode(true);
+                }
                 columnHeaders.push(
-                    Dash.html.Th({
+                    Dash.htmlElements.Th({
                         id: {"type": `${prefix}-column-sort`, "index": index},
                         className: "is-sortable" + sortClasses,
-                        children: Dash.html.Div({
+                        children: Dash.htmlElements.Div({
                             id: {"type": `${prefix}-columns`, "index": index},
                             className: `${prefix}-columns` + (rowSelectable ? "" : " row-selection-disabled"),
                             style: {"display": "flex", "userSelect": "none"},
                             children: [
-                                Dash.dcc.Input({
+                                Dash.dccElements.Input({
                                     id: {"type": `${prefix}-column-check`, "index": index},
                                     className: `${prefix}-column-check` +
                                         (col["selectable"] && columnSelectable ? "" : " hidden"),
                                     type: "checkbox",
                                 }),
-                                Dash.html.Div({
+                                Dash.htmlElements.Div({
                                     style: {"pointerEvents": "none"},
                                     children: [
-                                        Dash.html.Span({
+                                        Dash.htmlElements.Span({
                                             className: `${prefix}-column-title`,
                                             children: col["name"].toString()
                                         }),
-                                        Dash.html.Div({
+                                        Dash.htmlElements.Div({
                                             className: "sort-icon-container",
                                             style: {"display": "inline-block"},
-                                            children: this.config.column_sort_icon,
+                                            children: sortIcon,
                                         })
                                     ]
                                 })
@@ -280,7 +293,7 @@ var DashTable = (function (module) {
         /**
          * Create the rows containing the full table details.
          *
-         * @returns {object[]} Components to place into the body of the table, representing all rows.
+         * @returns {HTMLElement[]} Components to place into the body of the table, representing all rows.
          */
         getRows() {
             // Select only the items that should be visible for the current page.
@@ -320,7 +333,7 @@ var DashTable = (function (module) {
                         value = value.toString().split(/\n/g);
                         if (value.length > 1) {
                             value = value.flatMap((value, index, array) =>
-                                array.length - 1 !== index ? [value, Dash.html.Br()] : value
+                                array.length - 1 !== index ? [value, Dash.htmlElements.Br()] : value
                             );
                         }
                     } catch {
@@ -328,19 +341,19 @@ var DashTable = (function (module) {
                         value = String(value);
                     }
                     cells.push(
-                        Dash.html.Td({
+                        Dash.htmlElements.Td({
                             className: (rowSelectable ? "" : "row-selection-disabled ") + (column["align"] || "left"),
-                            children: Dash.html.Span({className: "data-cell", children: value}),
+                            children: Dash.htmlElements.Span({className: "data-cell", children: value}),
                         }),
                     );
                 }
                 rows.push(
-                    Dash.html.Tr({
+                    Dash.htmlElements.Tr({
                         className: "data-row",
                         children: [
-                            Dash.html.Td({
+                            Dash.htmlElements.Td({
                                 className: rowSelectable ? "" : "hidden",
-                                children: Dash.dcc.Input({
+                                children: Dash.dccElements.Input({
                                     id: {"type": `${prefix}-row-check`, "index": index},
                                     className: `${prefix}-row-check`,
                                     type: "checkbox",
@@ -446,15 +459,9 @@ var DashTable = (function (module) {
             }
             if (this.pendingHeaderChange) {
                 this.pendingHeaderChange = false;
-                dash_clientside.set_props(
-                    {"index": this.tableIndex, "type": `${prefix}-heading`},
-                    {"children": this.getColumns()},
-                );
+                this.heading.replaceChildren(...this.getColumns());
             }
-            dash_clientside.set_props(
-                {"index": this.tableIndex, "type": `${prefix}-body`},
-                {"children": this.getRows()},
-            );
+            this.body.replaceChildren(...this.getRows());
             this.updatePageIndicator();
             this.updateHighlights();
         }
