@@ -27,7 +27,6 @@ def get_table(index: int, data: list[dict], columns: list[dict]) -> html.Div:
             children=[
                 html.Div(
                     children=[
-                        dcc.Input(id={"type": f"{prefix}-loader", "index": index}, type="hidden", value=True),
                         dcc.Store(id={"type": f"{prefix}-config", "index": index}, data=config),
                         dcc.Store(id={"type": f"{prefix}-data", "index": index}, data={"original": data}),
                         html.Table(
@@ -88,15 +87,14 @@ app.layout = html.Div(
 )
 app.clientside_callback(
     """
-    function initTable(loader, config, data) {
+    function initTable(data, config) {
         new DashTable.TableState(config, data);
         // Return no update to prevent duplicate config callback. Any required updates will be triggered manually.
         return dash_clientside.no_update;
     }""",
     Output({"type": "info-config", "index": MATCH}, "data"),
-    Input({"type": "info-loader", "index": MATCH}, "value"),
+    Input({"type": "info-data", "index": MATCH}, "data"),
     State({"type": "info-config", "index": MATCH}, "data"),
-    State({"type": "info-data", "index": MATCH}, "data"),
     prevent_initial_call=False,
 )
 

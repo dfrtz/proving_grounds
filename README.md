@@ -197,6 +197,7 @@ based components without an NPM setup.
 #### Requirements
 
 - Plotly Dash application (example included as `app.py`)
+  - Plotly Dash >= 2.18.2 for best performance.
 - `dash-table.mjs` installed in `assets` application folder
 - [JS Dash Components](js_dash_components) example installed
 - Per table
@@ -206,9 +207,6 @@ based components without an NPM setup.
   <details>
   <summary>Child component details</summary>
 
-  - `dcc.Input(id={"type": f"{prefix}-loader", "index": index}, type="hidden", value=True)`
-    - Triggers initial clientside callback to registry table state
-    - Should not be used for any other purpose than initial callback to set up
   - `dcc.Store(id={"type": f"{prefix}-config", "index": index}, data=config)`
     - Stores the full configuration to set up the table, and detect changes
   - `dcc.Store(id={"type": f"{prefix}-data", "index": index}, data={"original": data})`
@@ -224,11 +222,11 @@ based components without an NPM setup.
     - Triggers next page of items
   - `html.Table(className=f"{prefix}-table")`
     - Updates selection checkboxes and highlights on user interaction
-  - `html.Tr(id={"type": f"{prefix}-heading", "index": index})`
+  - `html.Tr(id={"type": f"{prefix}-heading", "index": index}, f"{prefix}-heading")`
     - Automatically populates with column titles, selection checkboxes, and sorting icons
   - `dcc.Input(className=f"{prefix}-filter")`
     - Applies text input as a data filter
-  - `html.Tbody(id={"type": f"{prefix}-body", "index": index})`
+  - `html.Tbody(id={"type": f"{prefix}-body", "index": index}, className=f"{prefix}-body")`
     - Automatically populates with formatted data and selection checkboxes
   </details>
 
