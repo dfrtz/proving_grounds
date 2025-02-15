@@ -200,18 +200,17 @@ based components without an NPM setup.
   - Plotly Dash >= 2.18.2 for best performance.
 - `dash-table.mjs` installed in `assets` application folder
 - [JS Dash Components](js_dash_components) example installed
-- Per table
-  - 1x clientside callback to register the table state
-  - 1x root component with `{"type": f"{prefix}-root", "index": index}` style ID
-- Child components within the root for the following (any order, both "id" and "className" required as listed)
+- JavaScript Module (`.mjs`) support added to `Dash` App
+  - Refer to `app.py` example for details on enabling in renderer
+- `TableStateContainer` from JavaScript or Python wrapping all child components
+  - `{"type": prefix, "index": index}` style ID
+  - May contain up to 3 keys for the various `data` configs: original, filtered, and virtual
+- Child components within the root for the following (any order, both "id" and "className" attributes required as listed)
   <details>
   <summary>Child component details</summary>
 
-  - `dcc.Store(id={"type": f"{prefix}-config", "index": index}, data=config)`
-    - Stores the full configuration to set up the table, and detect changes
-  - `dcc.Store(id={"type": f"{prefix}-data", "index": index}, data={"original": data})`
-    - Stores the full data to set up the table, and detect changes
-    - Contains 3 keys for the various states: original, filtered, and virtual
+  - Root component, such as a `Div`, with `{"type": f"{prefix}-root", "index": index}` style ID
+    - Contains all child elements to allow querying by `className`
   - `html.Span(className=f"{prefix}-current-count")`
     - Auto-updates the currently visible range of items
   - `html.Span(className=f"{prefix}-total-count")`
@@ -222,11 +221,11 @@ based components without an NPM setup.
     - Triggers next page of items
   - `html.Table(className=f"{prefix}-table")`
     - Updates selection checkboxes and highlights on user interaction
-  - `html.Tr(id={"type": f"{prefix}-heading", "index": index}, f"{prefix}-heading")`
+  - `html.Tr(className=f"{prefix}-heading")`
     - Automatically populates with column titles, selection checkboxes, and sorting icons
   - `dcc.Input(className=f"{prefix}-filter")`
     - Applies text input as a data filter
-  - `html.Tbody(id={"type": f"{prefix}-body", "index": index}, className=f"{prefix}-body")`
+  - `html.Tbody(className=f"{prefix}-body")`
     - Automatically populates with formatted data and selection checkboxes
   </details>
 

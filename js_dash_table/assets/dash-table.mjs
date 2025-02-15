@@ -3,7 +3,7 @@
  *
  * @summary State for interactive tables.
  *
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @author David Fritz
  * @copyright 2025 David Fritz
@@ -59,21 +59,21 @@ var DashTable = (function (module) {
         /**
          * Initialize the interactive table state.
          *
-         * @param {object} config Configuration for the table, including columns and selections.
+         * @param {Object} props Configuration for the table, including columns and selections.
+         * @param {Object} props.config Configuration for the table, including columns and selections.
          *      See defaults for full list of available options.
-         * @param {object} data Collection of datasets used by the table.
-         * @param {object} data.original Original data before any views are made.
+         * @param {Object} props.data Collection of datasets used by the table.
+         * @param {Object} props.data.original Original data before any views are made.
          *      Reused when filter changes, and cached as `filtered`.
-         * @param {object|null} data.filtered Initial data representing a filtered view of the original data.
+         * @param {Object|null} props.data.filtered Initial data representing a filtered view of the original data.
          *      Reused when sorting order changes, and stored as `virtual`.
-         * @param {object|null} data.virtual Initial data representing the final filtered/sorted view of the original data.
+         * @param {Object|null} props.data.virtual Initial data representing the final filtered/sorted view of the original data.
          *      Reused when pages change. No additional views should be made from this data.
          */
-        constructor(config, data) {
+        constructor(props) {
             // Update and store config and data as objects to ensure changes are able to sent to property callbacks.
             // Preserve snake_case names for maximum Python cross-compatibility and consistency.
             const defaults = {
-                id_prefix: "info-table",
                 page: 0,
                 page_size: 10,
                 sort_by: [],
@@ -91,7 +91,7 @@ var DashTable = (function (module) {
                 column_sort_icon: "⏶",
                 verbosity: 0,
             };
-            this.config = {...defaults, ...config};
+            this.config = {...defaults, ...props.config};
             if (Array.isArray(this.config.columns)) {
                 const columns = this.config.columns;
                 this.config.columns = {
@@ -114,24 +114,24 @@ var DashTable = (function (module) {
                 }
             }
             // Populate any missing datasets in place to ensure their values are visible to callbacks.
-            this.data = data;
-            data.original = data.original || [];
-            data.filtered = data.filtered || [];
-            data.virtual = data.virtual || [];
+            this.data = props.data;
+            this.data.original = this.data.original || [];
+            this.data.filtered = this.data.filtered || [];
+            this.data.virtual = this.data.virtual || [];
 
             // The remainder of state values are only stored locally, and never exchanged with servers or callbacks.
-            const prefix = this.config.id_prefix;
-            const tableIndex = dash_clientside.callback_context.inputs_list[0].id.index;
-            this.root = document.getElementById(`{"index":"${tableIndex}","type":"${prefix}-root"}`);
-            this.table = this.root.getElementsByClassName(`${prefix}-table`)[0];
-            this.tableIndex = tableIndex;
-            this.filter = this.root.getElementsByClassName(`${prefix}-filter`)[0];
-            this.prevBtn = this.root.getElementsByClassName(`${prefix}-prev-btn`)[0];
-            this.nextBtn = this.root.getElementsByClassName(`${prefix}-next-btn`)[0];
-            this.currentCount = this.root.getElementsByClassName(`${prefix}-current-count`)[0];
-            this.totalCount = this.root.getElementsByClassName(`${prefix}-total-count`)[0];
-            this.heading = this.root.getElementsByClassName(`${prefix}-heading`)[0];
-            this.body = this.root.getElementsByClassName(`${prefix}-body`)[0];
+            const id = JSON.parse(props.id);
+            this.tableType = id.type;
+            this.tableIndex = id.index;
+            this.root = document.getElementById(`{"index":"${this.tableIndex}","type":"${this.tableType}-root"}`);
+            this.table = this.root.getElementsByClassName(`${this.tableType}-table`)[0];
+            this.filter = this.root.getElementsByClassName(`${this.tableType}-filter`)[0];
+            this.prevBtn = this.root.getElementsByClassName(`${this.tableType}-prev-btn`)[0];
+            this.nextBtn = this.root.getElementsByClassName(`${this.tableType}-next-btn`)[0];
+            this.currentCount = this.root.getElementsByClassName(`${this.tableType}-current-count`)[0];
+            this.totalCount = this.root.getElementsByClassName(`${this.tableType}-total-count`)[0];
+            this.heading = this.root.getElementsByClassName(`${this.tableType}-heading`)[0];
+            this.body = this.root.getElementsByClassName(`${this.tableType}-body`)[0];
             this.lastVirtualization = [];
             this.pendingConfigChange = true;
             this.pendingHeaderChange = true;
@@ -141,10 +141,14 @@ var DashTable = (function (module) {
 
             // Attach this object to the HTML element to tie their lifecycles together.
             // Clear references to previous states if the component is being reused.
-            if (this.table.state) {
-                this.table.state.table = null;
+            if (this.table) {
+                if (this.table.state) {
+                    this.table.state.table = null;
+                }
+                this.table.state = this;
+            } else {
+                return;
             }
-            this.table.state = this;
 
             // Add callbacks for the interactive elements to update the contents.
             // Direct attach, instead of using "addEventListener", to ensure old listeners are removed on component reuse.
@@ -158,7 +162,7 @@ var DashTable = (function (module) {
          * @param {Event} event Click event that occurred within the table on a button.
          */
         clickButton(event) {
-            const prefix = this.config.id_prefix;
+            const prefix = this.tableType;
             let page = this.config.page;
             if (event.target.classList.contains(`${prefix}-prev-btn`) && page > 0) {
                 page--;
@@ -177,7 +181,7 @@ var DashTable = (function (module) {
          * @param {Event} event Click event that occurred within the table on a checkbox.
          */
         clickCheckbox(event) {
-            const prefix = this.config.id_prefix;
+            const prefix = this.tableType;
             const fullID = JSON.parse(event.target.id);
             const type = fullID["type"];
             const index = parseInt(fullID["index"].split(/[^0-9]+/).pop());
@@ -232,7 +236,7 @@ var DashTable = (function (module) {
          * @returns {HTMLElement[]} Components to place into the header row of the table.
          */
         getColumns() {
-            const prefix = this.config.id_prefix;
+            const prefix = this.tableType;
             const rowSelectable = Boolean(this.config.row_selectable);
             const columnSelectable = Boolean(this.config.column_selectable);
             const sortBy = this.config.sort_by;
@@ -302,7 +306,7 @@ var DashTable = (function (module) {
             const firstRow = page * pageSize;
             const viewableData = this.data.virtual.slice(firstRow, firstRow + pageSize);
 
-            const prefix = this.config.id_prefix;
+            const prefix = this.tableType;
             const columns = this.config.columns.virtual || [];
             const rows = [];
             const rowSelectable = Boolean(this.config.row_selectable);
@@ -400,7 +404,7 @@ var DashTable = (function (module) {
         onClick(event) {
             if (event.target.type === "checkbox") {
                 this.clickCheckbox(event);
-            } else if (event.target.classList.contains(`${this.config.id_prefix}-columns`)) {
+            } else if (event.target.classList.contains(`${this.tableType}-columns`)) {
                 this.clickColumn(event);
             } else if (event.target.type === "submit") {
                 this.clickButton(event);
@@ -448,20 +452,19 @@ var DashTable = (function (module) {
          */
         async update() {
             await Dash.ready;
-            const prefix = this.config.id_prefix;
             await this.updateData();
             if (this.pendingConfigChange) {
                 this.pendingConfigChange = false;
                 dash_clientside.set_props(
-                    {"index": this.tableIndex, "type": `${prefix}-config`},
-                    {"data": this.config}
+                    {"index": this.tableIndex, "type": this.tableType},
+                    {"config": this.config}
                 );
             }
             if (this.pendingHeaderChange) {
                 this.pendingHeaderChange = false;
-                this.heading.replaceChildren(...this.getColumns());
+                this.heading?.replaceChildren(...this.getColumns());
             }
-            this.body.replaceChildren(...this.getRows());
+            this.body?.replaceChildren(...this.getRows());
             this.updatePageIndicator();
             this.updateHighlights();
         }
@@ -555,20 +558,20 @@ var DashTable = (function (module) {
                     if (!filter) {
                         this.data.filtered = this.data.original.slice();
                         original = true;
-                        this.filter.classList.remove("invalid");
+                        this.filter?.classList.remove("invalid");
                     } else {
                         const namespace = TABLE_FILTERS[this.config.filter_namespace] || {};
                         const filterFunc = namespace[this.config.filter_action] || namespace.default || TABLE_FILTERS.default;
                         try {
                             this.data.filtered = await filterFunc(filter, this.data.original);
                             newVirtualization[0] = filter;
-                            this.filter.classList.remove("invalid");
+                            this.filter?.classList.remove("invalid");
                         } catch {
                             // Fallback to original data without any filters, and provide hint to user that query is invalid.
                             // It is common to run partial queries with live filtering, never allow catastrophic failures.
                             this.data.filtered = this.data.original.slice();
                             original = true;
-                            this.filter.classList.add("invalid");
+                            this.filter?.classList.add("invalid");
                             newVirtualization[0] = "";
                         }
                     }
@@ -592,8 +595,8 @@ var DashTable = (function (module) {
          * Update table highlights without reloading contents.
          */
         updateHighlights() {
-            const prefix = this.config.id_prefix;
-            const rows = this.table.getElementsByClassName("data-row");
+            const prefix = this.tableType;
+            const rows = this.table?.getElementsByClassName("data-row") || [];
             const rowIndexKey = this.config.row_index_key;
             const selectedRows = this.config.selected_rows;
             const selectedColumns = this.config.selected_columns;
@@ -620,7 +623,7 @@ var DashTable = (function (module) {
                     }
                 }
             }
-            const columnChecks = this.table.getElementsByClassName(`${prefix}-column-check`);
+            const columnChecks = this.table?.getElementsByClassName(`${prefix}-column-check`) || [];
             for (let columnIndex = 0; columnIndex < columnChecks.length; columnIndex++) {
                 columnChecks[columnIndex].checked = selectedColumns.includes(columnIndex);
             }
@@ -666,6 +669,36 @@ var DashTable = (function (module) {
         }
     }
 
+    /**
+     * Element container for tracking user interactions with native Javascript and HTML table.
+     */
+    class TableStateContainer extends React.Component {
+        /**
+         * Run initialization logic after elements have been rendered.
+         */
+        componentDidMount() {
+            new TableState(this.props);
+        }
+
+        /**
+         * Display the children elements representing the table.
+         */
+        render() {
+            return this.props.children;
+        }
+    }
+
+    TableStateContainer.defaultProps = {
+        config: {},
+        data: {},
+    };
+
+    TableStateContainer.propTypes = {
+        config: PropTypes.object,
+        data: PropTypes.object,
+        setProps: PropTypes.func,
+    };
+
     // Public variables/classes/functions.
     module.TABLE_FILTERS = TABLE_FILTERS;
     module.TABLE_FORMATTERS = TABLE_FORMATTERS;
@@ -673,3 +706,10 @@ var DashTable = (function (module) {
 
     return module;
 })(DashTable || {});
+
+// Attach to public window to allow Dash to access the component by namespace.
+window.dash_table_state = {
+    TABLE_FILTERS: DashTable.TABLE_FILTERS,
+    TABLE_FORMATTERS: DashTable.TABLE_FORMATTERS,
+    TableStateContainer: DashTable.TableStateContainer,
+};
