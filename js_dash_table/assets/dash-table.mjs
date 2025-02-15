@@ -132,11 +132,16 @@ export class TableState {
         this.heading = this.root.getElementsByClassName(`${this.tableType}-heading`)[0];
         this.body = this.root.getElementsByClassName(`${this.tableType}-body`)[0];
         this.lastVirtualization = [];
-        this.pendingConfigChange = true;
-        this.pendingHeaderChange = true;
+        this.pendingConfigChange = false;
+        this.pendingHeaderChange = false;
 
         // Update the initial layout for the table.
-        this.update();
+        this.updateData().then(async () => {
+            // First render should not trigger config change, but should trigger a column header render.
+            this.pendingConfigChange = false;
+            this.pendingHeaderChange = true;
+            await this.update();
+        });
 
         // Attach this object to the HTML element to tie their lifecycles together.
         // Clear references to previous states if the component is being reused.
