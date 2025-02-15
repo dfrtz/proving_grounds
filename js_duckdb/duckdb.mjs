@@ -82,8 +82,8 @@ window.DuckDB = (function (module) {
 })(window.DuckDB || {});
 
 /**
- * If using with the DashTable interactive table example, add this to a library loaded with the Dash application.
+ * If using with the TableStateContainer interactive table example, add this to a library loaded with the Dash application.
  */
 // window.addEventListener("load", async function () {
-//     DashTable.TABLE_FILTERS.default = query;
+//     window.dash_table_state.TABLE_FILTERS.default = query;
 // });

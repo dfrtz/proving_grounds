@@ -238,11 +238,11 @@ based components without an NPM setup.
 // Place in any JS library loaded with the app.
 // Autoload the customizations after all supplemental libraries have loaded.
 window.addEventListener("load", function () {
-    if (DashTable.TABLE_FORMATTERS.cool_namespace) {
+    if (window.dash_table_state.TABLE_FORMATTERS.cool_namespace) {
         return;
     }
-    DashTable.TABLE_FORMATTERS.cool_namespace = {
-        default: DashTable.TABLE_FORMATTERS.default,
+    window.dash_table_state.TABLE_FORMATTERS.cool_namespace = {
+        default: window.dash_table_state.TABLE_FORMATTERS.default,
         percentage: (raw) => `${(raw * 100).toFixed(2)}%`,
     };
 });
@@ -257,10 +257,10 @@ window.addEventListener("load", function () {
 // Include "alasql.js" from https://github.com/AlaSQL/alasql in app assets for this filtering example.
 // Autoload the customizations after all supplemental libraries have loaded.
 window.addEventListener("load", function () {
-    if (DashTable.TABLE_FILTERS.cool_namespace) {
+    if (window.dash_table_state.TABLE_FILTERS.cool_namespace) {
         return;
     }
-    DashTable.TABLE_FILTERS.cool_namespace = {
+    window.dash_table_state.TABLE_FILTERS.cool_namespace = {
         default: function (filter, data) {
             try {
                 if (filter.trim()) {
@@ -269,7 +269,7 @@ window.addEventListener("load", function () {
                 }
             } catch {
                 // Fallback to basic functionality as a last resort.
-                data = DashTable.TABLE_FILTERS.default(filter, data);
+                data = window.dash_table_state.TABLE_FILTERS.default(filter, data);
             }
             return data;
         }

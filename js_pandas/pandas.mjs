@@ -58,11 +58,11 @@ window.Pandas = (function (module) {
 })(window.Pandas || {});
 
 /**
- * If using with the DashTable interactive table example, add this to a library loaded with the Dash application.
+ * If using with the TableStateContainer interactive table example, add this to a library loaded with the Dash application.
  */
 // window.addEventListener("load", async function () {
 //     await Python.init();
 //     await Python.installPackages(["pandas"]);
 //     await Python.execute("import pandas");
-//     DashTable.TABLE_FILTERS.default = query;
+//     window.dash_table_state.TABLE_FILTERS.default = query;
 // });
