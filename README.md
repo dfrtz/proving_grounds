@@ -177,7 +177,7 @@ async function onLoad() {
 100% JS alternative to Plotly Dash DataTable, with full control over filtering and formatting.
 
 Uses standard HTML component trees, `MATCH` based callbacks, and `dash_clientside` to perform the same behaviors
-(and more) without any Typescript or custom React components. The tree can be created in Python or JavaScript,
+(and more) without any Typescript (uses JS only for React component). The tree can be created in Python or JavaScript,
 as long as the required components are added.
 
 Also provides a general example for other custom "State" type classes that can be used to make JavaScript
