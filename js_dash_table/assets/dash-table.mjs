@@ -58,7 +58,7 @@ export class TableState {
     /**
      * Initialize the interactive table state.
      *
-     * @param {Object} props Configuration for the table, including columns and selections.
+     * @param {Object} props Properties of the React component containing the table.
      * @param {Object} props.config Configuration for the table, including columns and selections.
      *      See defaults for full list of available options.
      * @param {Object} props.data Collection of datasets used by the table.
