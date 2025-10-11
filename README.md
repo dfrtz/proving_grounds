@@ -417,6 +417,75 @@ window.Plotly.numFormatOverride = function (v, ax, fmtoverride, hover) {
 - [Plotly JavaScript](https://plotly.com/javascript/)
 
 
+### Python Okta Session Access
+
+#### Overview
+
+Manage Okta session cookies for Python client applications.
+- **Language(s)**: Python
+- **Location**: [Python Okta](py_okta)
+
+#### Requirements
+
+- [Python Requests](https://pypi.org/project/requests/) installed.
+- Web application configured with Okta authentication.
+  - For full support:
+    - Application must use `/login` to initiate the login process and provide a `/authorize` endpoint in the response
+    - Application must return a `/callback` endpoint in the `/authorize` response
+  - Partial support for:
+    - Direct Okta `/authn` queries for session tokens, and MFA push notifications
+
+#### Examples
+
+<details>
+<summary>Run the library directly to get a session cookie</summary>
+
+```bash
+$ ./okta.py 
+Okta organization URL (e.g. https://example.okta.com): https://myorg.okta.com
+Application login URL (e.g. https://example.app.com/login): https://example.myorg.com/login
+Username: jdoe@myorg.com
+Password: 
+Waiting for push notification up to 60 seconds...
+okta-hosted-login-session-store=MTc...
+```
+</details>
+
+<details>
+<summary>Import library and request Okta token</summary>
+
+```python
+import requests
+import okta
+
+okta_org_url = "https://myorg.okta.com"
+app_login_url = "https://example.myorg.com/login"
+username = input("Username: ")
+password = getpass.getpass("Password: ")
+
+with requests.Session() as session:
+    cookies = get_application_cookies(
+        session,
+        okta_org_url,
+        app_login_url,
+        username,
+        password,
+    )
+    cookies = dict((cookie.split("=", 1) if "=" in cookie else (cookie, True) for cookie in cookies))
+    session_cookie = cookies.get("okta-hosted-login-session-store")
+
+result = requests.get(
+    "https://example.myorg.com/api/v1/search?q=What+is+the+scale+of+a+banana",
+    headers={"Cookie": f"okta-hosted-login-session-store={session_cookie}"},
+)
+```
+</details>
+
+#### Other Resources
+
+- [Okta Developer - Authn](https://developer.okta.com/docs/reference/api/authn/#authentication-operations)
+
+
 ### Python Web Snapshots
 
 #### Overview
