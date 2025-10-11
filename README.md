@@ -13,9 +13,10 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [Background Web Worker Wrapper](#background-web-worker-wrapper)
   - [Dash Clientside Components](#dash-clientside-components)
   - [Dash Customizable Table](#dash-customizable-table)
+  - [DuckDB Web Query](#duckdb-web-query)
   - [Pandas Web Query](#pandas-web-query)
-  - [Plolty JS Custom Formatters](#plotly-js-custom-formatters)
-  - [Pandas Web Snapshots](#python-web-snapshots)
+  - [Plotly JS Custom Formatters](#plotly-js-custom-formatters)
+  - [Python Web Snapshots](#python-web-snapshots)
   - [Python Web Worker](#python-web-worker)
 
 ## Experiments vs Examples
