@@ -16,6 +16,7 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [DuckDB Web Query](#duckdb-web-query)
   - [Pandas Web Query](#pandas-web-query)
   - [Plotly JS Custom Formatters](#plotly-js-custom-formatters)
+  - [Python Argparse Extensions](#python-argparse-extensions)
   - [Python Web Snapshots](#python-web-snapshots)
   - [Python Web Worker](#python-web-worker)
 
@@ -415,6 +416,52 @@ window.Plotly.numFormatOverride = function (v, ax, fmtoverride, hover) {
 #### Other Resources
 
 - [Plotly JavaScript](https://plotly.com/javascript/)
+
+
+### Python Argparse Extensions
+
+#### Overview
+
+Collection of extensions to Python's native argparse.
+- **Language(s)**: Python
+- **Location**: [Python Argparse Extensions](py_argparse/argparse_extensions.py)
+- **Extensions**:
+  - Fuzzy Argument Parser
+
+#### Requirements
+
+- Python3.12 (or 3.10 with typehint change)
+
+#### Examples
+
+<details>
+<summary>Initialize and use fuzzy parser</summary>
+
+```python
+from fuzzy_argparse import FuzzyArgumentParser
+parser = FuzzyArgumentParser(description="A program with fuzzy matching")
+subparsers = parser.add_subparsers(title="commands", dest="command", required=False)
+subparsers.add_parser("test", help="Test something")
+subparsers.add_parser("run", help="Run something")
+config_parsers = subparsers.add_parser("configure", help="Configure something")
+config_parsers.add_argument("--banana", nargs="*", help="Complex word")
+config_parsers.add_argument("--apple", nargs="*", help="Complex word 2")
+print(dict(parser.parse_args().__dict__))
+```
+
+```bash
+# Close match.
+$ args.py configure --bna 123
+usage: args.py configure [-h] [--banana [BANANA ...]] [--apple [APPLE ...]]
+args.py configure: error: unrecognized argument: --bna (did you mean '--banana')
+
+# No close match.
+$ args.py configure --asdf 123
+usage: args.py [-h] {test,run,configure} ...
+args.py: error: unrecognized arguments: --asdf 123
+```
+</details>
+
 
 
 ### Python Okta Session Access
