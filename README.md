@@ -17,6 +17,7 @@ but big enough to benefit from more than a gist. Use as is, or expand to meet ad
   - [Pandas Web Query](#pandas-web-query)
   - [Plotly JS Custom Formatters](#plotly-js-custom-formatters)
   - [Python Argparse Extensions](#python-argparse-extensions)
+  - [Python Importlib Extensions](#python-importlib-extensions)
   - [Python Web Snapshots](#python-web-snapshots)
   - [Python Web Worker](#python-web-worker)
 
@@ -462,6 +463,43 @@ args.py: error: unrecognized arguments: --asdf 123
 ```
 </details>
 
+
+### Python Importlib Extensions
+
+#### Overview
+
+Collection of extensions to Python's native importlib.
+- **Language(s)**: Python
+- **Location**: [Python Importlib Extensions](py_importlib)
+- **Extensions**:
+  - [Python bundle package loader](py_importlib/bundle_loader.py)
+    - Allows loading Python packages directly from zip and tar files (including gz and zst compression)
+
+#### Requirements
+
+- Python3.12 (or 3.10 with typehint change)
+
+#### Examples
+
+<details>
+<summary>Create python plugin bundle and load</summary>
+
+```python
+# Save as "myplugins/foo/bar.py" and add to a "myplugins.tar.zst" bundle.
+def add(*args: int) -> int:
+    return sum(args)
+```
+
+```python
+from bundle_loader import BundleFinder
+finder = BundleFinder('myplugins.tar.zst')
+sys.meta_path.insert(0, finder)
+
+from myplugins.foo import bar
+bar.add(1,2)
+# 3
+```
+</details>
 
 
 ### Python Okta Session Access
